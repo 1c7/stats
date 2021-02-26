@@ -31,6 +31,8 @@ public class CPU: Module {
     
     private var loadReader: LoadReader? = nil
     private var processReader: ProcessReader? = nil
+    private var temperatureReader: TemperatureReader? = nil
+    private var frequencyReader: FrequencyReader? = nil
     private let smc: UnsafePointer<SMCService>?
     private let store: UnsafePointer<Store>
     
@@ -56,25 +58,47 @@ public class CPU: Module {
         self.loadReader = LoadReader()
         self.loadReader?.store = store
         
-        self.processReader = ProcessReader()
+        self.processReader = ProcessReader(self.config.name, store: store)
+        self.temperatureReader = TemperatureReader(smc)
+        
+        #if arch(x86_64)
+        self.frequencyReader = FrequencyReader()
+        #endif
         
         self.settingsView.callback = { [unowned self] in
             self.loadReader?.read()
+        }
+        self.settingsView.callbackWhenUpdateNumberOfProcesses = {
+            self.popupView.numberOfProcessesUpdated()
+            DispatchQueue.global(qos: .background).async {
+                self.processReader?.read()
+            }
         }
         self.settingsView.setInterval = { [unowned self] value in
             self.loadReader?.setInterval(value)
         }
         
-        self.loadReader?.readyCallback = { [unowned self] in
-            self.readyHandler()
-        }
         self.loadReader?.callbackHandler = { [unowned self] value in
             self.loadCallback(value)
+        }
+        self.loadReader?.readyCallback = { [unowned self] in
+            self.readyHandler()
         }
         
         self.processReader?.callbackHandler = { [unowned self] value in
             if let list = value {
                 self.popupView.processCallback(list)
+            }
+        }
+        
+        self.temperatureReader?.callbackHandler = { [unowned self] value in
+            if value != nil {
+                self.popupView.temperatureCallback(value!)
+            }
+        }
+        self.frequencyReader?.callbackHandler = { [unowned self] value in
+            if value != nil {
+                self.popupView.frequencyCallback(value!)
             }
         }
         
@@ -84,24 +108,33 @@ public class CPU: Module {
         if let reader = self.processReader {
             self.addReader(reader)
         }
+        if let reader = self.temperatureReader {
+            self.addReader(reader)
+        }
+        if let reader = self.frequencyReader {
+            self.addReader(reader)
+        }
     }
     
-    private func loadCallback(_ value: CPU_Load?) {
-        guard value != nil else {
+    private func loadCallback(_ raw: CPU_Load?) {
+        guard let value = raw else {
             return
         }
         
-        let temperature = self.smc?.pointee.getValue("TC0C") ?? self.smc?.pointee.getValue("TC0D") ?? self.smc?.pointee.getValue("TC0P") ?? self.smc?.pointee.getValue("TC0E")
-        self.popupView.loadCallback(value!, tempValue: temperature)
+        self.popupView.loadCallback(value)
         
-        if let widget = self.widget as? Mini {
-            widget.setValue(value!.totalUsage, sufix: "%")
-        }
-        if let widget = self.widget as? LineChart {
-            widget.setValue(value!.totalUsage)
-        }
-        if let widget = self.widget as? BarChart {
-            widget.setValue(self.usagePerCoreState ? value!.usagePerCore : [value!.totalUsage])
+        self.widgets.filter{ $0.isActive }.forEach { (w: Widget) in
+            switch w.item {
+            case let widget as Mini: widget.setValue(value.totalUsage)
+            case let widget as LineChart: widget.setValue(value.totalUsage)
+            case let widget as BarChart: widget.setValue(self.usagePerCoreState ? value.usagePerCore : [value.totalUsage])
+            case let widget as PieChart:
+                widget.setValue([
+                    circle_segment(value: value.systemLoad, color: NSColor.systemRed),
+                    circle_segment(value: value.userLoad, color: NSColor.systemBlue)
+                ])
+            default: break
+            }
         }
     }
 }

@@ -23,6 +23,14 @@
 "Unavailable" = "Недоступно";
 "Yes" = "Так";
 "No" = "Ні";
+"Automatic" = "Автоматичний";
+"None" = "Ніяка";
+"Dots" = "Пункти";
+"Arrows" = "Стрілки";
+"Characters" = "Літери";
+"Short" = "Короткий";
+"Long" = "Довгий";
+"Statistics" = "Статистика";
 
 // Alerts
 "New version available" = "Доступна нова версія";
@@ -33,6 +41,7 @@
 // Settings
 "Open Activity Monitor" = "Відкрити Монітор активності";
 "Report a bug" = "Повідомити про помилку";
+"Support the application" = "Підтримати програму";
 "Close application" = "Закрити програму";
 "Open application settings" = "Відкрити налаштування";
 "Open moduleName settings" = "Відкрити налаштування %0";
@@ -40,8 +49,18 @@
 // Application settings
 "Update application" = "Оновити програму";
 "Check for updates" = "Перевіряти оновленя";
+"At start" = "При включенні";
+"Once per day" = "Раз на день";
+"Once per week" = "Раз на тиждень";
+"Once per month" = "Раз на місяць";
+"Never" = "Ніколи";
+"Check for update" = "Перевірити оновленя";
 "Show icon in dock" = "Показувати іконку в dock";
-"Start at login" = "Запуск при логуванні";
+"Start at login" = "Запускати при логуванні";
+
+// Dashboard
+"Serial number" = "Серійний номер";
+"Uptime" = "Час роботи";
 
 // Update
 "The latest version of Stats installed" = "Встановлено останню версію";
@@ -60,6 +79,18 @@
 "Additional information" = "Додаткова інформація";
 "Reverse values order" = "Змінити порядок сортування";
 "Base" = "Основа";
+"Display mode" = "Режим відображення";
+"One row" = "Один ряд";
+"Two rows" = "Два ряди";
+"Mini widget" = "Mini";
+"Line chart widget" = "Line chart";
+"Bar chart widget" = "Bar chart";
+"Pie chart widget" = "Pie chart";
+"Network chart widget" = "Network chart";
+"Speed widget" = "Speed";
+"Battery widget" = "Battery";
+"Text widget" = "Text";
+"Memory widget" = "Memory";
 
 // Module Kit
 "Open module settings" = "Відкрити налаштування модуля";
@@ -70,9 +101,13 @@
 "Top processes" = "Топ процесів";
 "Pictogram" = "Піктограма";
 
+// Modules
+"Number of top processes" = "Кількість процесів";
+
 // CPU
 "CPU usage" = "Використання процесора";
 "CPU temperature" = "Температура процесора";
+"CPU frequency" = "Частота процесора";
 "System" = "Система";
 "User" = "Користувач";
 "Idle" = "Вільно";
@@ -81,8 +116,20 @@
 
 // GPU
 "GPU to show" = "Активний графічний процесор";
+"Show GPU type" = "Показувати тип графічного процесора";
+"GPU enabled" = "GPU enabled";
+"GPU disabled" = "GPU disabled";
 "GPU temperature" = "Температура графічного процесора";
 "GPU utilization" = "Навантаженість графічного процесора";
+"Vendor" = "Vendor";
+"Model" = "Model";
+"Status" = "Status";
+"Active" = "Active";
+"Non active" = "Non active";
+"Fan speed" = "Fan speed";
+"Core clock" = "Core clock";
+"Memory clock" = "Memory clock";
+"Utilization" = "Utilization";
 
 // Memory
 "Memory usage" = "Навантаженість пам’яті";
@@ -93,17 +140,23 @@
 "Wired" = "Постійна";
 "Compressed" = "Стисненна";
 "Free" = "Вільна";
+"Swap" = "Swap";
 
 // Disk
 "Show removable disks" = "Показати зйомні диски";
 "Used disk memory" = "Використано %0 з %1";
+"Free disk memory" = "Вільно %0 з %1";
 "Disk to show" = "Активний диск";
+"Open disk" = "Відкрити диск";
+"Switch view" = "Переключити вигляд";
 
 // Sensors
 "Temperature unit" = "Одиниця виміру температури";
+"Celsius" = "Цельсія";
+"Fahrenheit" = "Фаренгейта";
 
 // Network
-"Uploading" = "Вислання";
+"Uploading" = "Висилання";
 "Downloading" = "Завантаження";
 "Public IP" = "Публічний IP";
 "Local IP" = "Локальний IP";
@@ -116,18 +169,26 @@
 "Click to copy mac address" = "Натисніть, щоб скопіювати фізичний адрес";
 "No connection" = "Немає з'єднання";
 "Network interface" = "Мережевий інтерфейс";
+"Total download" = "Загально завантажено";
+"Total upload" = "Загально вислано";
+"Reader type" = "Метод читання";
+"Interface based" = "Інтерфейс";
+"Processes based" = "Процеси";
 
 // Battery
 "Level" = "Рівень заряду";
 "Source" = "Джерело";
+"AC Power" = "AC Power";
+"Battery Power" = "Battery Power";
 "Time" = "Час";
 "Health" = "Стан акумулятора";
 "Battery" = "Акумулятор";
 "Amperage" = "Сила струму";
 "Voltage" = "Напруга";
+"Cycles" = "Кількість циклів";
 "Temperature" = "Температура";
 "Power adapter" = "Блок живлення";
-"Power" = "Статус";
+"Power" = "Потужність";
 "Is charging" = "Заряджається";
 "Time to discharge" = "Час до розрядки";
 "Time to charge" = "Час до зарядки";
@@ -137,3 +198,11 @@
 "Low level notification" = "Повідомлення про низький рівень заряду";
 "Low battery" = "Низький заряд акумулятора";
 "Battery remaining" = "%0% залишилось";
+"Percentage" = "Проценти";
+"Percentage and time" = "Проценти і час";
+"Time and percentage" = "Час і проценти";
+"Time format" = "Формат часу";
+"Hide additional information when full" = "Приховати додаткову інформацію, якщо акумулятор заряджений";
+
+// Fans
+"Fans" = "Fans";

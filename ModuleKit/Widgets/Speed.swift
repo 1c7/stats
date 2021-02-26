@@ -12,17 +12,8 @@
 import Cocoa
 import StatsKit
 
-public enum speed_icon_t: String {
-    case none = "None"
-    case separator = "separator"
-    case dot = "Dots"
-    case arrow = "Arrows"
-    case char = "Character"
-}
-extension speed_icon_t: CaseIterable {}
-
-public class SpeedWidget: Widget {
-    private var icon: speed_icon_t = .dot
+public class SpeedWidget: WidgetWrapper {
+    private var icon: String = "dots"
     private var state: Bool = false
     private var valueState: Bool = true
     private var baseValue: String = "byte"
@@ -38,30 +29,34 @@ public class SpeedWidget: Widget {
     private let store: UnsafePointer<Store>?
     private var width: CGFloat = 58
     
-    public init(preview: Bool, title: String, config: NSDictionary?, store: UnsafePointer<Store>?) {
+    public init(title: String, config: NSDictionary?, store: UnsafePointer<Store>?, preview: Bool = false) {
         let widgetTitle: String = title
         self.store = store
         if config != nil {
             if let symbols = config!["Symbols"] as? [String] {
                 self.symbols = symbols
             }
-            if let iconName = config!["Icon"] as? String, let icon = speed_icon_t(rawValue: iconName) {
+            if let icon = config!["Icon"] as? String {
                 self.icon = icon
             }
         }
-        super.init(frame: CGRect(x: 0, y: Constants.Widget.margin, width: width, height: Constants.Widget.height - (2*Constants.Widget.margin)))
-        self.title = widgetTitle
-        self.type = .speed
-        self.preview = preview
+        
+        super.init(.speed, title: widgetTitle, frame: CGRect(
+            x: 0,
+            y: Constants.Widget.margin.y,
+            width: width,
+            height: Constants.Widget.height - (2*Constants.Widget.margin.y)
+        ))
+        
         self.canDrawConcurrently = true
         
-        if self.store != nil {
+        if self.store != nil && !preview {
             self.valueState = store!.pointee.bool(key: "\(self.title)_\(self.type.rawValue)_value", defaultValue: self.valueState)
-            self.icon = speed_icon_t(rawValue: store!.pointee.string(key: "\(self.title)_\(self.type.rawValue)_icon", defaultValue: self.icon.rawValue)) ?? self.icon
+            self.icon = store!.pointee.string(key: "\(self.title)_\(self.type.rawValue)_icon", defaultValue: self.baseValue)
             self.baseValue = store!.pointee.string(key: "\(self.title)_base", defaultValue: self.baseValue)
         }
         
-        if self.valueState && self.icon != .none {
+        if self.valueState && self.icon != "none" {
             self.state = true
         }
         
@@ -82,11 +77,11 @@ public class SpeedWidget: Widget {
         var x: CGFloat = 10
         
         switch self.icon {
-        case .dot:
+        case "dots":
             self.drawDots(dirtyRect)
-        case .arrow:
+        case "arrows":
             self.drawArrows(dirtyRect)
-        case .char:
+        case "chars":
             self.drawChars(dirtyRect)
         default:
             x = 0
@@ -106,11 +101,11 @@ public class SpeedWidget: Widget {
             ]
             
             let base: DataSizeBase = DataSizeBase(rawValue: self.baseValue) ?? .byte
-            var rect = CGRect(x: Constants.Widget.margin + x, y: 1, width: rowWidth - (Constants.Widget.margin*2), height: rowHeight)
+            var rect = CGRect(x: Constants.Widget.margin.x + x, y: 1, width: rowWidth - (Constants.Widget.margin.x*2), height: rowHeight)
             let download = NSAttributedString.init(string: Units(bytes: self.downloadValue).getReadableSpeed(base: base), attributes: stringAttributes)
             download.draw(with: rect)
             
-            rect = CGRect(x: Constants.Widget.margin + x, y: rect.height+1, width: rowWidth - (Constants.Widget.margin*2), height: rowHeight)
+            rect = CGRect(x: Constants.Widget.margin.x + x, y: rect.height+1, width: rowWidth - (Constants.Widget.margin.x*2), height: rowHeight)
             let upload = NSAttributedString.init(string: Units(bytes: self.uploadValue).getReadableSpeed(base: base), attributes: stringAttributes)
             upload.draw(with: rect)
             
@@ -129,7 +124,7 @@ public class SpeedWidget: Widget {
         let y: CGFloat = (rowHeight-size)/2
         
         var downloadCircle = NSBezierPath()
-        downloadCircle = NSBezierPath(ovalIn: CGRect(x: Constants.Widget.margin, y: y-0.2, width: size, height: size))
+        downloadCircle = NSBezierPath(ovalIn: CGRect(x: Constants.Widget.margin.x, y: y-0.2, width: size, height: size))
         if self.downloadValue >= 1_024 {
             NSColor.systemBlue.set()
         } else {
@@ -138,7 +133,7 @@ public class SpeedWidget: Widget {
         downloadCircle.fill()
         
         var uploadCircle = NSBezierPath()
-        uploadCircle = NSBezierPath(ovalIn: CGRect(x: Constants.Widget.margin, y: 10.5, width: size, height: size))
+        uploadCircle = NSBezierPath(ovalIn: CGRect(x: Constants.Widget.margin.x, y: 10.5, width: size, height: size))
         if self.uploadValue >= 1_024 {
             NSColor.red.setFill()
         } else {
@@ -149,35 +144,43 @@ public class SpeedWidget: Widget {
     
     private func drawArrows(_ dirtyRect: NSRect) {
         let arrowAngle = CGFloat(Double.pi / 5)
-        let pointerLineLength: CGFloat = 3.5
-        let workingHeight: CGFloat = (self.frame.size.height - (Constants.Widget.margin * 2))
-        let height: CGFloat = ((workingHeight - Constants.Widget.margin) / 2)
+        let half = self.frame.size.height / 2
+        let scaleFactor = NSScreen.main?.backingScaleFactor ?? 1
+        let lineWidth: CGFloat = 1
+        let arrowSize: CGFloat = 3 + (scaleFactor/2)
+        let x = Constants.Widget.margin.x + arrowSize + (lineWidth / 2)
         
         let downloadArrow = NSBezierPath()
-        let downloadStart = CGPoint(x: Constants.Widget.margin + (pointerLineLength/2), y: height + Constants.Widget.margin)
-        let downloadEnd = CGPoint(x: Constants.Widget.margin + (pointerLineLength/2), y: Constants.Widget.margin)
-        downloadArrow.addArrow(start: downloadStart, end: downloadEnd, pointerLineLength: pointerLineLength, arrowAngle: arrowAngle)
+        downloadArrow.addArrow(
+            start: CGPoint(x: x, y: half - Constants.Widget.spacing/2),
+            end: CGPoint(x: x, y: 0),
+            pointerLineLength: arrowSize,
+            arrowAngle: arrowAngle
+        )
         
         if self.downloadValue >= 1_024 {
             NSColor.systemBlue.set()
         } else {
             NSColor.textColor.set()
         }
-        downloadArrow.lineWidth = 1
+        downloadArrow.lineWidth = lineWidth
         downloadArrow.stroke()
         downloadArrow.close()
         
         let uploadArrow = NSBezierPath()
-        let uploadStart = CGPoint(x: Constants.Widget.margin + (pointerLineLength/2), y: height + (Constants.Widget.margin * 2))
-        let uploadEnd = CGPoint(x: Constants.Widget.margin + (pointerLineLength/2), y: (Constants.Widget.margin * 2) + (height * 2))
-        uploadArrow.addArrow(start: uploadStart, end: uploadEnd, pointerLineLength: pointerLineLength, arrowAngle: arrowAngle)
-        
+        uploadArrow.addArrow(
+            start: CGPoint(x: x, y: half + Constants.Widget.spacing/2),
+            end: CGPoint(x: x, y: self.frame.size.height),
+            pointerLineLength: arrowSize,
+            arrowAngle: arrowAngle
+        )
+
         if self.uploadValue >= 1_024 {
             NSColor.red.set()
         } else {
             NSColor.textColor.set()
         }
-        uploadArrow.lineWidth = 1
+        uploadArrow.lineWidth = lineWidth
         uploadArrow.stroke()
         uploadArrow.close()
     }
@@ -191,7 +194,7 @@ public class SpeedWidget: Widget {
                 NSAttributedString.Key.foregroundColor: downloadValue >= 1_024 ? NSColor(red: (26/255.0), green: (126/255.0), blue: (252/255.0), alpha: 0.8) : NSColor.textColor,
                 NSAttributedString.Key.paragraphStyle: NSMutableParagraphStyle()
             ]
-            let rect = CGRect(x: Constants.Widget.margin, y: 1, width: 8, height: rowHeight)
+            let rect = CGRect(x: Constants.Widget.margin.x, y: 1, width: 8, height: rowHeight)
             let str = NSAttributedString.init(string: self.symbols[1], attributes: downloadAttributes)
             str.draw(with: rect)
         }
@@ -202,30 +205,29 @@ public class SpeedWidget: Widget {
                 NSAttributedString.Key.foregroundColor: uploadValue >= 1_024 ? NSColor.red : NSColor.textColor,
                 NSAttributedString.Key.paragraphStyle: NSMutableParagraphStyle()
             ]
-            let rect = CGRect(x: Constants.Widget.margin, y: rowHeight+1, width: 8, height: rowHeight)
+            let rect = CGRect(x: Constants.Widget.margin.x, y: rowHeight+1, width: 8, height: rowHeight)
             let str = NSAttributedString.init(string: self.symbols[0], attributes: uploadAttributes)
             str.draw(with: rect)
         }
     }
     
-    public override func settings(superview: NSView) {
+    public override func settings(width: CGFloat) -> NSView {
         let height: CGFloat = 90 + (Constants.Settings.margin*4)
         let rowHeight: CGFloat = 30
-        superview.setFrameSize(NSSize(width: superview.frame.width, height: height))
         
         let view: NSView = NSView(frame: NSRect(
             x: Constants.Settings.margin,
             y: Constants.Settings.margin,
-            width: superview.frame.width - (Constants.Settings.margin*2),
-            height: superview.frame.height - (Constants.Settings.margin*2)
+            width: width - (Constants.Settings.margin*2),
+            height: height
         ))
         
-        view.addSubview(SelectTitleRow(
+        view.addSubview(SelectRow(
             frame: NSRect(x: 0, y: (rowHeight+Constants.Settings.margin) * 2, width: view.frame.width, height: rowHeight),
             title: LocalizedString("Pictogram"),
             action: #selector(toggleIcon),
-            items: speed_icon_t.allCases.map{ return $0.rawValue },
-            selected: self.icon.rawValue
+            items: SpeedPictogram,
+            selected: self.icon
         ))
         
         view.addSubview(SelectRow(
@@ -243,7 +245,7 @@ public class SpeedWidget: Widget {
             state: self.valueState
         ))
         
-        superview.addSubview(view)
+        return view
     }
     
     @objc private func toggleValue(_ sender: NSControl) {
@@ -267,12 +269,14 @@ public class SpeedWidget: Widget {
     }
     
     @objc private func toggleIcon(_ sender: NSMenuItem) {
-        let newIcon: speed_icon_t = speed_icon_t(rawValue: sender.title) ?? .none
-        self.icon = newIcon
-        self.store?.pointee.set(key: "\(self.title)_\(self.type.rawValue)_icon", value: self.icon.rawValue)
+        guard let key = sender.representedObject as? String else {
+            return
+        }
+        self.icon = key
+        self.store?.pointee.set(key: "\(self.title)_\(self.type.rawValue)_icon", value: key)
         self.display()
         
-        if !self.valueState && self.icon == .none {
+        if !self.valueState && self.icon == "none" {
             NotificationCenter.default.post(name: .toggleModule, object: nil, userInfo: ["module": self.title, "state": false])
             self.state = false
         } else if !self.state {

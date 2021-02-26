@@ -47,30 +47,46 @@ internal class UsageReader: Reader<RAM_Usage> {
         }
         
         if result == KERN_SUCCESS {
-            let active = Double(stats.active_count) * Double(PAGE_SIZE)
-            let inactive = Double(stats.inactive_count) * Double(PAGE_SIZE)
-            let wired = Double(stats.wire_count) * Double(PAGE_SIZE)
-            let compressed = Double(stats.compressor_page_count) * Double(PAGE_SIZE)
+            let active = Double(stats.active_count) * Double(vm_page_size)
+            let speculative = Double(stats.speculative_count) * Double(vm_page_size)
+            let inactive = Double(stats.inactive_count) * Double(vm_page_size)
+            let wired = Double(stats.wire_count) * Double(vm_page_size)
+            let compressed = Double(stats.compressor_page_count) * Double(vm_page_size)
+            let purgeable = Double(stats.purgeable_count) * Double(vm_page_size)
+            let external = Double(stats.external_page_count) * Double(vm_page_size)
             
-            let used = active + wired + compressed
+            let used = active + inactive + speculative + wired + compressed - purgeable - external
             let free = self.totalSize - used
             
-            var size: size_t = MemoryLayout<uint>.size
+            var int_size: size_t = MemoryLayout<uint>.size
             var pressureLevel: Int = 0
-            sysctlbyname("kern.memorystatus_vm_pressure_level", &pressureLevel, &size, nil, 0)
+            sysctlbyname("kern.memorystatus_vm_pressure_level", &pressureLevel, &int_size, nil, 0)
+            
+            var string_size: size_t = MemoryLayout<xsw_usage>.size
+            var swap: xsw_usage = xsw_usage()
+            sysctlbyname("vm.swapusage", &swap, &string_size, nil, 0)
             
             self.callback(RAM_Usage(
+                total: self.totalSize,
+                used: used,
+                free: free,
+                
                 active: active,
                 inactive: inactive,
                 wired: wired,
                 compressed: compressed,
                 
-                usage: Double((self.totalSize - free) / self.totalSize),
-                total: Double(self.totalSize),
-                used: Double(used),
-                free: Double(free),
+                app: used - wired - compressed,
+                cache: purgeable + external,
+                pressure: 100.0 * (wired + compressed) / self.totalSize,
                 
-                pressureLevel: pressureLevel
+                pressureLevel: pressureLevel,
+                
+                swap: Swap(
+                    total: Double(swap.xsu_total),
+                    used: Double(swap.xsu_used),
+                    free: Double(swap.xsu_avail)
+                )
             ))
             return
         }
@@ -80,14 +96,33 @@ internal class UsageReader: Reader<RAM_Usage> {
 }
 
 public class ProcessReader: Reader<[TopProcess]> {
+    private let store: UnsafePointer<Store>
+    private let title: String
+    
+    private var numberOfProcesses: Int {
+        get {
+            return self.store.pointee.int(key: "\(self.title)_processes", defaultValue: 8)
+        }
+    }
+    
+    init(_ title: String, store: UnsafePointer<Store>) {
+        self.title = title
+        self.store = store
+        super.init()
+    }
+    
     public override func setup() {
         self.popup = true
     }
     
     public override func read() {
+        if self.numberOfProcesses == 0 {
+            return
+        }
+        
         let task = Process()
         task.launchPath = "/usr/bin/top"
-        task.arguments = ["-l", "1", "-o", "mem", "-n", "5", "-stats", "pid,command,mem"]
+        task.arguments = ["-l", "1", "-o", "mem", "-n", "\(self.numberOfProcesses)", "-stats", "pid,command,mem"]
         
         let outputPipe = Pipe()
         let errorPipe = Pipe()
@@ -113,19 +148,23 @@ public class ProcessReader: Reader<[TopProcess]> {
         
         var processes: [TopProcess] = []
         output.enumerateLines { (line, _) -> () in
-            if line.matches("^\\d+ + .+ +\\d+.\\d[M\\+\\-]+ *$") {
+            if line.matches("^\\d+ +.* +\\d+[A-Z]*\\+?\\-? *$") {
                 var str = line.trimmingCharacters(in: .whitespaces)
                 let pidString = str.findAndCrop(pattern: "^\\d+")
-                let usageString = str.findAndCrop(pattern: " [0-9]+M(\\+|\\-)*$")
-                var command = str.trimmingCharacters(in: .whitespaces)
+                let usageString = str.suffix(5)
+                var command = str.replacingOccurrences(of: pidString, with: "")
+                command = command.replacingOccurrences(of: usageString, with: "")
                 
                 if let regex = try? NSRegularExpression(pattern: " (\\+|\\-)*$", options: .caseInsensitive) {
                     command = regex.stringByReplacingMatches(in: command, options: [], range: NSRange(location: 0, length:  command.count), withTemplate: "")
                 }
                 
-                let pid = Int(pidString) ?? 0
-                guard let usage = Double(usageString.filter("01234567890.".contains)) else {
-                    return
+                let pid = Int(pidString.filter("01234567890.".contains)) ?? 0
+                var usage = Double(usageString.filter("01234567890.".contains)) ?? 0
+                if usageString.contains("G") {
+                    usage *= 1024 // apply gigabyte multiplier
+                } else if usageString.contains("K") {
+                    usage /= 1024 // apply kilobyte divider
                 }
                 
                 var name: String? = nil

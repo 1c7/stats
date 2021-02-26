@@ -11,8 +11,8 @@
 
 import Cocoa
 
-public typealias updateInterval = String
-public enum updateIntervals: updateInterval {
+public typealias AppUpdateIntervalType = String
+public enum AppUpdateInterval: AppUpdateIntervalType {
     case atStart = "At start"
     case separator_1 = "separator_1"
     case oncePerDay = "Once per day"
@@ -21,14 +21,22 @@ public enum updateIntervals: updateInterval {
     case separator_2 = "separator_2"
     case never = "Never"
 }
-extension updateIntervals: CaseIterable {}
+public let AppUpdateIntervals: [KeyValue_t] = [
+    KeyValue_t(key: "At start", value: AppUpdateInterval.atStart.rawValue),
+    KeyValue_t(key: "separator_1", value: "separator_1"),
+    KeyValue_t(key: "Once per day", value: AppUpdateInterval.oncePerDay.rawValue),
+    KeyValue_t(key: "Once per week", value: AppUpdateInterval.oncePerWeek.rawValue),
+    KeyValue_t(key: "Once per month", value: AppUpdateInterval.oncePerMonth.rawValue),
+    KeyValue_t(key: "separator_2", value: "separator_2"),
+    KeyValue_t(key: "Never", value: AppUpdateInterval.never.rawValue)
+]
 
 public struct KeyValue_t {
-    let key: String
-    let value: String
-    let additional: Any?
+    public let key: String
+    public let value: String
+    public let additional: Any?
     
-    init(key: String, value: String, additional: Any? = nil) {
+    public init(key: String, value: String, additional: Any? = nil) {
         self.key = key
         self.value = value
         self.additional = additional
@@ -51,6 +59,86 @@ public let SpeedBase: [KeyValue_t] = [
     KeyValue_t(key: "byte", value: "Byte", additional: DataSizeBase.byte)
 ]
 
+public let SensorsWidgetMode: [KeyValue_t] = [
+    KeyValue_t(key: "automatic", value: "Automatic"),
+    KeyValue_t(key: "separator", value: "separator"),
+    KeyValue_t(key: "oneRow", value: "One row"),
+    KeyValue_t(key: "twoRows", value: "Two rows"),
+]
+
+public let SpeedPictogram: [KeyValue_t] = [
+    KeyValue_t(key: "none", value: "None"),
+    KeyValue_t(key: "separator", value: "separator"),
+    KeyValue_t(key: "dots", value: "Dots"),
+    KeyValue_t(key: "arrows", value: "Arrows"),
+    KeyValue_t(key: "chars", value: "Characters"),
+]
+
+public let BatteryAdditionals: [KeyValue_t] = [
+    KeyValue_t(key: "none", value: "None"),
+    KeyValue_t(key: "separator", value: "separator"),
+    KeyValue_t(key: "percentage", value: "Percentage"),
+    KeyValue_t(key: "time", value: "Time"),
+    KeyValue_t(key: "percentageAndTime", value: "Percentage and time"),
+    KeyValue_t(key: "timeAndPercentage", value: "Time and percentage"),
+]
+
+public let ShortLong: [KeyValue_t] = [
+    KeyValue_t(key: "short", value: "Short"),
+    KeyValue_t(key: "long", value: "Long"),
+]
+
+public let ReaderUpdateIntervals: [Int] = [1, 2, 3, 5, 10, 15, 30]
+public let NumbersOfProcesses: [Int] = [0, 3, 5, 8, 10, 15]
+
+public typealias Bandwidth = (upload: Int64, download: Int64)
+public let NetworkReaders: [KeyValue_t] = [
+    KeyValue_t(key: "interface", value: "Interface based"),
+    KeyValue_t(key: "process", value: "Processes based"),
+]
+
+public enum widget_c: String {
+    case utilization = "Based on utilization"
+    case pressure = "Based on pressure"
+    
+    case separator_1 = "separator_1"
+    
+    case systemAccent = "System accent"
+    case monochrome = "Monochrome accent"
+    
+    case separator_2 = "separator_2"
+    
+    case clear = "Clear"
+    case white = "White"
+    case black = "Black"
+    case gray = "Gray"
+    case secondGray = "Second gray"
+    case darkGray = "Dark gray"
+    case lightGray = "Light gray"
+    case red = "Red"
+    case secondRed = "Second red"
+    case green = "Green"
+    case secondGreen = "Second green"
+    case blue = "Blue"
+    case secondBlue = "Second blue"
+    case yellow = "Yellow"
+    case secondYellow = "Second yellow"
+    case orange = "Orange"
+    case secondOrange = "Second orange"
+    case purple = "Purple"
+    case secondPurple = "Second purple"
+    case brown = "Brown"
+    case secondBrown = "Second brown"
+    case cyan = "Cyan"
+    case magenta = "Magenta"
+    case pink = "Pink"
+    case teal = "Teal"
+    case indigo = "Indigo"
+}
+extension widget_c: CaseIterable {}
+
+public typealias colorZones = (orange: Double, red: Double)
+
 public struct Units {
     public let bytes: Int64
     
@@ -71,20 +159,23 @@ public struct Units {
         return gigabytes / 1_024
     }
     
-    public func getReadableTuple() -> (String, String) {
+    public func getReadableTuple(base: DataSizeBase = .byte) -> (String, String) {
+        let stringBase = base == .byte ? "B" : "b"
+        let multiplier: Double = base == .byte ? 1 : 8
+        
         switch bytes {
         case 0..<1_024:
-            return ("0", "KB/s")
+            return ("0", "K\(stringBase)/s")
         case 1_024..<(1_024 * 1_024):
-            return (String(format: "%.0f", kilobytes), "KB/s")
+            return (String(format: "%.0f", kilobytes*multiplier), "K\(stringBase)/s")
         case 1_024..<(1_024 * 1_024 * 100):
-            return (String(format: "%.1f", megabytes), "MB/s")
+            return (String(format: "%.1f", megabytes*multiplier), "M\(stringBase)/s")
         case (1_024 * 1_024 * 100)..<(1_024 * 1_024 * 1_024):
-            return (String(format: "%.0f", megabytes), "MB/s")
+            return (String(format: "%.0f", megabytes*multiplier), "M\(stringBase)/s")
         case (1_024 * 1_024 * 1_024)...Int64.max:
-            return (String(format: "%.1f", gigabytes), "GB/s")
+            return (String(format: "%.1f", gigabytes*multiplier), "G\(stringBase)/s")
         default:
-            return (String(format: "%.0f", kilobytes), "KB/s")
+            return (String(format: "%.0f", kilobytes*multiplier), "K\(stringBase)B/s")
         }
     }
     
@@ -126,8 +217,46 @@ public struct Units {
     }
 }
 
+public struct DiskSize {
+    public let value: Int64
+    
+    public init(_ size: Int64) {
+        self.value = size
+    }
+    
+    public var kilobytes: Double {
+        return Double(value) / 1_000
+    }
+    public var megabytes: Double {
+        return kilobytes / 1_000
+    }
+    public var gigabytes: Double {
+        return megabytes / 1_000
+    }
+    public var terabytes: Double {
+        return gigabytes / 1_000
+    }
+    
+    public func getReadableMemory() -> String {
+        switch value {
+        case 0..<1_000:
+            return "0 KB"
+        case 1_000..<(1_000 * 1_000):
+            return String(format: "%.0f KB", kilobytes)
+        case 1_000..<(1_000 * 1_000 * 1_000):
+            return String(format: "%.0f MB", megabytes)
+        case 1_000..<(1_000 * 1_000 * 1_000 * 1_000):
+            return String(format: "%.2f GB", gigabytes)
+        case (1_000 * 1_000 * 1_000 * 1_000)...Int64.max:
+            return String(format: "%.2f TB", terabytes)
+        default:
+            return String(format: "%.0f KB", kilobytes)
+        }
+    }
+}
+
 public class LabelField: NSTextField {
-    public init(frame: NSRect, _ label: String) {
+    public init(frame: NSRect, _ label: String = "") {
         super.init(frame: frame)
         
         self.isEditable = false
@@ -149,7 +278,7 @@ public class LabelField: NSTextField {
 }
 
 public class ValueField: NSTextField {
-    public init(frame: NSRect, _ value: String) {
+    public init(frame: NSRect, _ value: String = "") {
         super.init(frame: frame)
         
         self.isEditable = false
@@ -199,18 +328,18 @@ public func SeparatorView(_ title: String, origin: NSPoint, width: CGFloat) -> N
     return view
 }
 
-public func PopupRow(_ view: NSView, n: CGFloat, title: String, value: String) -> ValueField {
+public func PopupRow(_ view: NSView, n: CGFloat, title: String, value: String) -> (LabelField, ValueField) {
     let rowView: NSView = NSView(frame: NSRect(x: 0, y: 22*n, width: view.frame.width, height: 22))
     
     let labelWidth = title.widthOfString(usingFont: .systemFont(ofSize: 13, weight: .regular)) + 5
     let labelView: LabelField = LabelField(frame: NSRect(x: 0, y: (22-15)/2, width: labelWidth, height: 15), title)
-    let valueView: ValueField = ValueField(frame: NSRect(x: labelWidth, y: (22-16)/2, width: rowView.frame.width - labelWidth, height: 16), value)
+    let valueView: ValueField = ValueField(frame: NSRect(x: labelWidth, y: (22-15)/2, width: rowView.frame.width - labelWidth, height: 16), value)
     
     rowView.addSubview(labelView)
     rowView.addSubview(valueView)
     view.addSubview(rowView)
     
-    return valueView
+    return (labelView, valueView)
 }
 
 public func PopupWithColorRow(_ view: NSView, color: NSColor, n: CGFloat, title: String, value: String) -> ValueField {
@@ -465,12 +594,13 @@ public func IsNewestVersion(currentVersion: String, latestVersion: String) -> Bo
     return false
 }
 
-public func showNotification(title: String, subtitle: String, id: String = UUID().uuidString, icon: NSImage? = nil) -> NSUserNotification {
+public func showNotification(title: String, subtitle: String? = nil, text: String? = nil, id: String = UUID().uuidString, icon: NSImage? = nil) -> NSUserNotification {
     let notification = NSUserNotification()
     
     notification.identifier = id
     notification.title = title
     notification.subtitle = subtitle
+    notification.informativeText = text
     notification.soundName = NSUserNotificationDefaultSoundName
     notification.hasActionButton = false
     
@@ -578,6 +708,8 @@ public class ColorView: NSView {
 }
 
 public struct Log: TextOutputStream {
+    public static var log: Log = Log()
+    
     public func write(_ string: String) {
         let fm = FileManager.default
         let log = fm.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("log.txt")
@@ -601,18 +733,182 @@ public func LocalizedString(_ key: String, _ params: String..., comment: String 
     return string
 }
 
+extension UnitTemperature {
+    static var current: UnitTemperature {
+        let measureFormatter = MeasurementFormatter()
+        let measurement = Measurement(value: 0, unit: UnitTemperature.celsius)
+        return measureFormatter.string(from: measurement).hasSuffix("C") ? .celsius : .fahrenheit
+    }
+}
+
 public func Temperature(_ value: Double) -> String {
     let stringUnit: String = Store.shared.string(key: "temperature_units", defaultValue: "system")
     let formatter = MeasurementFormatter()
+    formatter.locale = Locale.init(identifier: "en_US")
     formatter.numberFormatter.maximumFractionDigits = 0
     formatter.unitOptions = .providedUnit
     
     var measurement = Measurement(value: value, unit: UnitTemperature.celsius)
-    if stringUnit != "system" {
-        if let temperatureUnit = TemperatureUnits.first(where: { $0.key == stringUnit }), let unit = temperatureUnit.additional as? UnitTemperature {
-            measurement.convert(to: unit)
+    if stringUnit == "system" {
+        measurement.convert(to: UnitTemperature.current)
+    } else {
+        if let temperatureUnit = TemperatureUnits.first(where: { $0.key == stringUnit }) {
+            if let unit = temperatureUnit.additional as? UnitTemperature {
+                measurement.convert(to: unit)
+            }
         }
     }
     
     return formatter.string(from: measurement)
+}
+
+public func SysctlByName(_ name: String) -> Int64 {
+    var num: Int64 = 0
+    var size = MemoryLayout<Int64>.size
+    
+    if sysctlbyname(name, &num, &size, nil, 0) != 0 {
+        print(POSIXError.Code(rawValue: errno).map { POSIXError($0) } ?? CocoaError(.fileReadUnknown))
+    }
+    
+    return num
+}
+
+public class ProcessView: NSView {
+    public var width: CGFloat {
+        get { return 0 }
+        set {
+            self.setFrameSize(NSSize(width: newValue, height: self.frame.height))
+        }
+    }
+    
+    public var icon: NSImage? {
+        get { return NSImage() }
+        set {
+            self.imageView?.image = newValue
+        }
+    }
+    public var label: String {
+        get { return "" }
+        set {
+            self.labelView?.stringValue = newValue
+        }
+    }
+    public var value: String {
+        get { return "" }
+        set {
+            self.valueView?.stringValue = newValue
+        }
+    }
+    
+    private var imageView: NSImageView? = nil
+    private var labelView: LabelField? = nil
+    private var valueView: ValueField? = nil
+    
+    public init(_ n: CGFloat) {
+        super.init(frame: NSRect(x: 0, y: n*22, width: 264, height: 16))
+        
+        let rowView: NSView = NSView(frame: NSRect(x: 0, y: 0, width: self.frame.width, height: 16))
+        
+        let imageView: NSImageView = NSImageView(frame: NSRect(x: 2, y: 2, width: 12, height: 12))
+        let labelView: LabelField = LabelField(frame: NSRect(x: 18, y: 0.5, width: rowView.frame.width - 70 - 18, height: 15), "")
+        let valueView: ValueField = ValueField(frame: NSRect(x: 18 + labelView.frame.width, y: 0, width: 70, height: 16), "")
+        
+        rowView.addSubview(imageView)
+        rowView.addSubview(labelView)
+        rowView.addSubview(valueView)
+        
+        self.imageView = imageView
+        self.labelView = labelView
+        self.valueView = valueView
+        
+        self.addSubview(rowView)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    public func attachProcess(_ process: TopProcess) {
+        self.label = process.name != nil ? process.name! : process.command
+        self.icon = process.icon
+        self.toolTip = "pid: \(process.pid)"
+    }
+    
+    public func clear() {
+        self.label = ""
+        self.value = ""
+        self.icon = nil
+        self.toolTip = ""
+    }
+}
+
+public class CAText: CATextLayer {
+    public init(fontSize: CGFloat = 12, weight: NSFont.Weight = .regular) {
+        super.init()
+        
+        self.font = NSFont.systemFont(ofSize: fontSize, weight: weight)
+        self.fontSize = fontSize
+        
+        self.allowsFontSubpixelQuantization = true
+        self.contentsScale = NSScreen.main?.backingScaleFactor ?? 1
+        self.rasterizationScale = NSScreen.main?.backingScaleFactor ?? 1
+        
+        self.foregroundColor = NSColor.textColor.cgColor
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    public override init(layer: Any) {
+        super.init(layer: layer)
+    }
+    
+    public func getWidth(add: CGFloat = 0) -> CGFloat {
+        let value = self.string as? String ?? ""
+        return value.widthOfString(usingFont: self.font as! NSFont).rounded(.up) + add
+    }
+}
+
+public class WidgetLabelView: NSView {
+    private var title: String
+    
+    public init(_ title: String, height: CGFloat) {
+        self.title = title
+        
+        super.init(frame: NSRect(
+            x: 0,
+            y: 0,
+            width: 6,
+            height: height
+        ))
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    public override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        
+        let style = NSMutableParagraphStyle()
+        style.alignment = .center
+        let stringAttributes = [
+            NSAttributedString.Key.font: NSFont.systemFont(ofSize: 7, weight: .regular),
+            NSAttributedString.Key.foregroundColor: NSColor.textColor,
+            NSAttributedString.Key.paragraphStyle: style
+        ]
+        
+        let title = self.title.prefix(3)
+        let letterHeight = self.frame.height / 3
+        let letterWidth: CGFloat = self.frame.height / CGFloat(title.count)
+        
+        var yMargin: CGFloat = 0
+        for char in title.uppercased().reversed() {
+            let rect = CGRect(x: 0, y: yMargin, width: letterWidth, height: letterHeight-1)
+            let str = NSAttributedString.init(string: "\(char)", attributes: stringAttributes)
+            str.draw(with: rect)
+            yMargin += letterHeight
+        }
+    }
 }

@@ -14,16 +14,14 @@ import StatsKit
 import ModuleKit
 
 internal class Settings: NSView, Settings_v {
-    private var unitsValue: String = "system"
-    private var updateIntervalValue: String = "3"
-    private let listOfUpdateIntervals: [String] = ["1", "2", "3", "5", "10", "15", "30"]
+    private var updateIntervalValue: Int = 3
     
     private let title: String
     private let store: UnsafePointer<Store>
     private var button: NSPopUpButton?
     private let list: UnsafeMutablePointer<[Sensor_t]>
     public var callback: (() -> Void) = {}
-    public var setInterval: ((_ value: Double) -> Void) = {_ in }
+    public var setInterval: ((_ value: Int) -> Void) = {_ in }
     
     public init(_ title: String, store: UnsafePointer<Store>, list: UnsafeMutablePointer<[Sensor_t]>) {
         self.title = title
@@ -40,15 +38,14 @@ internal class Settings: NSView, Settings_v {
         self.wantsLayer = true
         self.canDrawConcurrently = true
         
-        self.updateIntervalValue = store.pointee.string(key: "\(self.title)_updateInterval", defaultValue: self.updateIntervalValue)
-        self.unitsValue = store.pointee.string(key: "temperature_units", defaultValue: self.unitsValue)
+        self.updateIntervalValue = store.pointee.int(key: "\(self.title)_updateInterval", defaultValue: self.updateIntervalValue)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func load(widget: widget_t) {
+    public func load(widgets: [widget_t]) {
         guard !self.list.pointee.isEmpty else {
             return
         }
@@ -62,7 +59,7 @@ internal class Settings: NSView, Settings_v {
         }
         
         let rowHeight: CGFloat = 30
-        let settingsHeight: CGFloat = (rowHeight*2) + Constants.Settings.margin
+        let settingsHeight: CGFloat = (rowHeight*1) + Constants.Settings.margin
         let sensorsListHeight: CGFloat = (rowHeight+Constants.Settings.margin) * CGFloat(self.list.pointee.count) + ((rowHeight+Constants.Settings.margin) * CGFloat(types.count) + 1)
         let height: CGFloat = settingsHeight + sensorsListHeight
         let x: CGFloat = height < 360 ? 0 : Constants.Settings.margin
@@ -77,16 +74,8 @@ internal class Settings: NSView, Settings_v {
             frame: NSRect(x: Constants.Settings.margin, y: height - rowHeight, width: view.frame.width, height: rowHeight),
             title: LocalizedString("Update interval"),
             action: #selector(changeUpdateInterval),
-            items: self.listOfUpdateIntervals.map{ "\($0) sec" },
+            items: ReaderUpdateIntervals.map{ "\($0) sec" },
             selected: "\(self.updateIntervalValue) sec"
-        ))
-        
-        self.addSubview(SelectRow(
-            frame: NSRect(x: Constants.Settings.margin, y: height - (rowHeight*2) - Constants.Settings.margin, width: view.frame.width, height: rowHeight),
-            title: LocalizedString("Temperature unit"),
-            action: #selector(changeUnits),
-            items: TemperatureUnits,
-            selected: self.unitsValue
         ))
         
         var y: CGFloat = 0
@@ -116,7 +105,7 @@ internal class Settings: NSView, Settings_v {
             }
             
             let rowTitleView: NSView = NSView(frame: NSRect(x: 0, y: y, width: view.frame.width, height: rowHeight))
-            let rowTitle: NSTextField = LabelField(frame: NSRect(x: 0, y: (rowHeight-19)/2, width: view.frame.width, height: 19), typ)
+            let rowTitle: NSTextField = LabelField(frame: NSRect(x: 0, y: (rowHeight-19)/2, width: view.frame.width, height: 19), LocalizedString(typ))
             rowTitle.font = NSFont.systemFont(ofSize: 14, weight: .regular)
             rowTitle.textColor = .secondaryLabelColor
             rowTitle.alignment = .center
@@ -130,7 +119,7 @@ internal class Settings: NSView, Settings_v {
         self.setFrameSize(NSSize(width: self.frame.width, height: height + (Constants.Settings.margin*1)))
     }
     
-    @objc func handleSelection(_ sender: NSControl) {
+    @objc private func handleSelection(_ sender: NSControl) {
         guard let id = sender.identifier else { return }
         
         var state: NSControl.StateValue? = nil
@@ -145,21 +134,10 @@ internal class Settings: NSView, Settings_v {
     }
     
     @objc private func changeUpdateInterval(_ sender: NSMenuItem) {
-        let newUpdateInterval = sender.title.replacingOccurrences(of: " sec", with: "")
-        self.updateIntervalValue = newUpdateInterval
-        store.pointee.set(key: "\(self.title)_updateInterval", value: self.updateIntervalValue)
-        
-        if let value = Double(self.updateIntervalValue) {
+        if let value = Int(sender.title.replacingOccurrences(of: " sec", with: "")) {
+            self.updateIntervalValue = value
+            self.store.pointee.set(key: "\(self.title)_updateInterval", value: value)
             self.setInterval(value)
         }
-    }
-    
-    @objc private func changeUnits(_ sender: NSMenuItem) {
-        guard let key = sender.representedObject as? String else {
-            return
-        }
-        self.unitsValue = key
-        store.pointee.set(key: "temperature_units", value: key)
-        self.callback()
     }
 }

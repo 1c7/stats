@@ -28,8 +28,8 @@ public struct Network_interface {
 }
 
 public struct Network_Usage: value_t {
-    var download: Int64 = 0
-    var upload: Int64 = 0
+    var bandwidth: Bandwidth = (0, 0)
+    var total: Bandwidth = (0, 0)
     
     var laddr: String? = nil // local ip
     var raddr: String? = nil // remote ip
@@ -41,8 +41,7 @@ public struct Network_Usage: value_t {
     var ssid: String? = nil
     
     mutating func reset() {
-        self.download = 0
-        self.upload = 0
+        self.bandwidth = (0, 0)
         
         self.laddr = nil
         self.raddr = nil
@@ -67,14 +66,15 @@ public struct Network_Process {
 }
 
 public class Network: Module {
+    private var popupView: Popup
+    private var settingsView: Settings
+    
     private var usageReader: UsageReader? = nil
     private var processReader: ProcessReader? = nil
-    private var popupView: Popup? = nil
-    private var settingsView: Settings
     
     public init(_ store: UnsafePointer<Store>) {
         self.settingsView = Settings("Network", store: store)
-        self.popupView = Popup(store: store, title: "Network")
+        self.popupView = Popup("Network", store: store)
         
         super.init(
             store: store,
@@ -86,18 +86,25 @@ public class Network: Module {
         self.usageReader = UsageReader()
         self.usageReader?.store = store
         
-        self.processReader = ProcessReader()
+        self.processReader = ProcessReader(self.config.name, store: store)
         
-        self.usageReader?.readyCallback = { [unowned self] in
-            self.readyHandler()
+        self.settingsView.callbackWhenUpdateNumberOfProcesses = {
+            self.popupView.numberOfProcessesUpdated()
+            DispatchQueue.global(qos: .background).async {
+                self.processReader?.read()
+            }
         }
+        
         self.usageReader?.callbackHandler = { [unowned self] value in
             self.usageCallback(value)
+        }
+        self.usageReader?.readyCallback = { [unowned self] in
+            self.readyHandler()
         }
         
         self.processReader?.callbackHandler = { [unowned self] value in
             if let list = value {
-                self.popupView?.processCallback(list)
+                self.popupView.processCallback(list)
             }
         }
         
@@ -124,14 +131,19 @@ public class Network: Module {
         return list.count > 0
     }
     
-    private func usageCallback(_ value: Network_Usage?) {
-        if value == nil {
+    private func usageCallback(_ raw: Network_Usage?) {
+        guard let value = raw else {
             return
         }
         
-        self.popupView?.usageCallback(value!)
-        if let widget = self.widget as? SpeedWidget {
-            widget.setValue(upload: value!.upload, download: value!.download)
+        self.popupView.usageCallback(value)
+        
+        self.widgets.filter{ $0.isActive }.forEach { (w: Widget) in
+            switch w.item {
+            case let widget as SpeedWidget: widget.setValue(upload: value.bandwidth.upload, download: value.bandwidth.download)
+            case let widget as NetworkChart: widget.setValue(upload: Double(value.bandwidth.upload), download: Double(value.bandwidth.download))
+            default: break
+            }
         }
     }
 }

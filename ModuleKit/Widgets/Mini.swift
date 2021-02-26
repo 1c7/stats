@@ -12,19 +12,31 @@
 import Cocoa
 import StatsKit
 
-public class Mini: Widget {
-    public var labelState: Bool = true
+public class Mini: WidgetWrapper {
+    private let store: UnsafePointer<Store>?
+    private let defaultTitle: String
+    
+    private var labelState: Bool = true
     private var colorState: widget_c = .monochrome
     
-    private let onlyValueWidth: CGFloat = 38
-    private var value: Double = 0
-    private let store: UnsafePointer<Store>?
+    private var labelLayer: CATextLayer? = nil
+    private var valueLayer: CATextLayer? = nil
+    
+    private let onlyValueWidth: CGFloat = 40
     private var colors: [widget_c] = widget_c.allCases
+    
+    private var value: Double = 0
     private var pressureLevel: Int = 0
     
-    public init(preview: Bool, title: String, config: NSDictionary?, store: UnsafePointer<Store>?) {
-        var widgetTitle: String = title
+    private var width: CGFloat {
+        get {
+            return (self.labelState ? 31 : 36) + (2*Constants.Widget.margin.x)
+        }
+    }
+    
+    public init(title: String, config: NSDictionary?, store: UnsafePointer<Store>?, preview: Bool = false) {
         self.store = store
+        var widgetTitle: String = title
         if config != nil {
             var configuration = config!
             
@@ -32,12 +44,8 @@ public class Mini: Widget {
                 if let previewConfig = config!["Preview"] as? NSDictionary {
                     configuration = previewConfig
                     if let value = configuration["Value"] as? String {
-                        self.value = Double(value) ?? 0.38
-                    } else {
-                        self.value = 0.38
+                        self.value = Double(value) ?? 0
                     }
-                } else {
-                    self.value = 0.38
                 }
             }
             
@@ -58,27 +66,34 @@ public class Mini: Widget {
                 }
             }
         }
-        super.init(frame: CGRect(x: 0, y: Constants.Widget.margin, width: Constants.Widget.width, height: Constants.Widget.height - (2*Constants.Widget.margin)))
-        self.title = widgetTitle
-        self.type = .mini
-        self.preview = preview
+        
+        self.defaultTitle = widgetTitle
+        super.init(.mini, title: widgetTitle, frame: CGRect(
+            x: 0,
+            y: Constants.Widget.margin.y,
+            width: Constants.Widget.width + (2*Constants.Widget.margin.x),
+            height: Constants.Widget.height - (2*Constants.Widget.margin.y)
+        ))
+        
         self.canDrawConcurrently = true
         
-        if self.store != nil {
-            self.colorState = widget_c(rawValue: store!.pointee.string(key: "\(self.title)_\(self.type.rawValue)_color", defaultValue: self.colorState.rawValue)) ?? self.colorState
-            self.labelState = store!.pointee.bool(key: "\(self.title)_\(self.type.rawValue)_label", defaultValue: self.labelState)
+        if let store = self.store, !preview {
+            self.colorState = widget_c(rawValue: store.pointee.string(key: "\(self.title)_\(self.type.rawValue)_color", defaultValue: self.colorState.rawValue)) ?? self.colorState
+            self.labelState = store.pointee.bool(key: "\(self.title)_\(self.type.rawValue)_label", defaultValue: self.labelState)
         }
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     public override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         
-        var width: CGFloat = onlyValueWidth
-        let x: CGFloat = Constants.Widget.margin
-        var valueSize: CGFloat = 13
-        var y: CGFloat = (Constants.Widget.height-valueSize)/2
+        let valueSize: CGFloat = self.labelState ? 12 : 14
+        var origin: CGPoint = CGPoint(x: Constants.Widget.margin.x, y: (Constants.Widget.height-valueSize)/2)
         let style = NSMutableParagraphStyle()
-        style.alignment = .center
+        style.alignment = self.labelState ? .left : .center
         
         if self.labelState {
             let stringAttributes = [
@@ -86,14 +101,11 @@ public class Mini: Widget {
                 NSAttributedString.Key.foregroundColor: isDarkMode ? NSColor.white : NSColor.textColor,
                 NSAttributedString.Key.paragraphStyle: NSMutableParagraphStyle()
             ]
-            let rect = CGRect(x: x, y: 12, width: 20, height: 7)
+            let rect = CGRect(x: origin.x, y: 12, width: 20, height: 7)
             let str = NSAttributedString.init(string: self.title, attributes: stringAttributes)
             str.draw(with: rect)
             
-            y = 1
-            valueSize = 11
-            width = Constants.Widget.width
-            style.alignment = .left
+            origin.y = 1
         }
         
         var color: NSColor = NSColor.controlAccentColor
@@ -110,23 +122,63 @@ public class Mini: Widget {
             NSAttributedString.Key.foregroundColor: color,
             NSAttributedString.Key.paragraphStyle: style
         ]
-        let rect = CGRect(x: x, y: y, width: width - (Constants.Widget.margin*2), height: valueSize)
+        let rect = CGRect(x: origin.x, y: origin.y, width: width - (Constants.Widget.margin.x*2), height: valueSize+1)
         let str = NSAttributedString.init(string: "\(Int(self.value.rounded(toPlaces: 2) * 100))%", attributes: stringAttributes)
         str.draw(with: rect)
         
         self.setWidth(width)
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    public func setValue(_ value: Double) {
+        if self.value == value {
+            return
+        }
+        
+        self.value = value
+        DispatchQueue.main.async(execute: {
+            self.display()
+        })
     }
     
-    public override func settings(superview: NSView) {
+    public func setPressure(_ level: Int) {
+        if self.pressureLevel == level {
+            return
+        }
+        
+        self.pressureLevel = level
+        DispatchQueue.main.async(execute: {
+            self.needsDisplay = true
+        })
+    }
+    
+    public func setTitle(_ newTitle: String?) {
+        var title = self.defaultTitle
+        if newTitle != nil {
+            title = newTitle!
+        }
+        
+        if self.title == title {
+            return
+        }
+        
+        self.title = title
+        DispatchQueue.main.async(execute: {
+            self.needsDisplay = true
+        })
+    }
+    
+    // MARK: - Settings
+    
+    public override func settings(width: CGFloat) -> NSView {
         let height: CGFloat = 60 + (Constants.Settings.margin*3)
         let rowHeight: CGFloat = 30
-        superview.setFrameSize(NSSize(width: superview.frame.width, height: height))
         
-        let view: NSView = NSView(frame: NSRect(x: Constants.Settings.margin, y: Constants.Settings.margin, width: superview.frame.width - (Constants.Settings.margin*2), height: superview.frame.height - (Constants.Settings.margin*2)))
+        let view: NSView = NSView(frame: NSRect(
+            x: Constants.Settings.margin,
+            y: Constants.Settings.margin,
+            width: width - (Constants.Settings.margin*2),
+            height: height
+        ))
         
         view.addSubview(ToggleTitleRow(
             frame: NSRect(x: 0, y: rowHeight + Constants.Settings.margin, width: view.frame.width, height: rowHeight),
@@ -143,7 +195,7 @@ public class Mini: Widget {
             selected: self.colorState.rawValue
         ))
         
-        superview.addSubview(view)
+        return view
     }
     
     @objc private func toggleColor(_ sender: NSMenuItem) {
@@ -164,27 +216,5 @@ public class Mini: Widget {
         self.labelState = state! == .on ? true : false
         self.store?.pointee.set(key: "\(self.title)_\(self.type.rawValue)_label", value: self.labelState)
         self.display()
-    }
-    
-    public func setValue(_ value: Double, sufix: String) {
-        if value == self.value {
-            return
-        }
-        
-        self.value = value
-        DispatchQueue.main.async(execute: {
-            self.display()
-        })
-    }
-    
-    public func setPressure(_ level: Int) {
-        guard self.pressureLevel != level else {
-            return
-        }
-        
-        self.pressureLevel = level
-        DispatchQueue.main.async(execute: {
-            self.display()
-        })
     }
 }

@@ -16,7 +16,7 @@ import IOKit.ps
 
 struct Battery_Usage: value_t {
     var powerSource: String = ""
-    var state: String = ""
+    var state: String? = nil
     var isCharged: Bool = false
     var isCharging: Bool = false
     var level: Double = 0
@@ -42,7 +42,7 @@ struct Battery_Usage: value_t {
 public class Battery: Module {
     private var usageReader: UsageReader? = nil
     private var processReader: ProcessReader? = nil
-    private let popupView: Popup = Popup()
+    private let popupView: Popup
     private var settingsView: Settings
     
     private let store: UnsafePointer<Store>
@@ -52,6 +52,7 @@ public class Battery: Module {
     public init(_ store: UnsafePointer<Store>) {
         self.store = store
         self.settingsView = Settings("Battery", store: store)
+        self.popupView = Popup("Battery", store: store)
         
         super.init(
             store: store,
@@ -61,13 +62,25 @@ public class Battery: Module {
         guard self.available else { return }
         
         self.usageReader = UsageReader()
-        self.processReader = ProcessReader()
+        self.processReader = ProcessReader(self.config.name, store: store)
         
-        self.usageReader?.readyCallback = { [unowned self] in
-            self.readyHandler()
+        self.settingsView.callback = {
+            DispatchQueue.global(qos: .background).async {
+                self.usageReader?.read()
+            }
         }
+        self.settingsView.callbackWhenUpdateNumberOfProcesses = {
+            self.popupView.numberOfProcessesUpdated()
+            DispatchQueue.global(qos: .background).async {
+                self.processReader?.read()
+            }
+        }
+        
         self.usageReader?.callbackHandler = { [unowned self] value in
             self.usageCallback(value)
+        }
+        self.usageReader?.readyCallback = { [unowned self] in
+            self.readyHandler()
         }
         
         self.processReader?.callbackHandler = { [unowned self] value in
@@ -90,23 +103,27 @@ public class Battery: Module {
         return sources.count > 0
     }
     
-    private func usageCallback(_ value: Battery_Usage?) {
-        if value == nil {
+    private func usageCallback(_ raw: Battery_Usage?) {
+        guard let value = raw else {
             return
         }
         
-        self.checkNotification(value: value!)
-        self.popupView.usageCallback(value!)
-        if let widget = self.widget as? Mini {
-            widget.setValue(abs(value!.level), sufix: "%")
-        }
-        if let widget = self.widget as? BatterykWidget {
-            widget.setValue(
-                percentage: value?.level ?? 0,
-                ACStatus: value?.powerSource != "Battery Power",
-                isCharging: value?.isCharging ?? false,
-                time: (value?.timeToEmpty == 0 && value?.timeToCharge != 0 ? value?.timeToCharge : value?.timeToEmpty) ?? 0
-            )
+        self.checkNotification(value: value)
+        self.popupView.usageCallback(value)
+        
+        self.widgets.filter{ $0.isActive }.forEach { (w: Widget) in
+            switch w.item {
+            case let widget as Mini: widget.setValue(abs(value.level))
+            case let widget as BarChart: widget.setValue([value.level])
+            case let widget as BatterykWidget:
+                widget.setValue(
+                    percentage: value.level ,
+                    ACStatus: value.powerSource != "Battery Power",
+                    isCharging: value.isCharging ,
+                    time: value.timeToEmpty == 0 && value.timeToCharge != 0 ? value.timeToCharge : value.timeToEmpty
+                )
+            default: break
+            }
         }
     }
     

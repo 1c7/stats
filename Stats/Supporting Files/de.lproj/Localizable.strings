@@ -1,0 +1,208 @@
+//
+//  Localizable.strings
+//  Stats
+//
+//  Created by Serhiy Mytrovtsiy on 27/08/2020.
+//  Using Swift 5.0.
+//  Running on macOS 10.15.
+//
+//  Copyright © 2020 Serhiy Mytrovtsiy. All rights reserved.
+//
+
+// Words
+"Unknown" = "Unbekannt";
+"Version" = "Version";
+"Processor" = "Prozessor";
+"Memory" = "Speicher";
+"Graphics" = "Grafikkarten";
+"Disk" = "Festplatte";
+"Close" = "Schließen";
+"Download" = "Herunterladen";
+"Install" = "Installieren";
+"Cancel" = "Abbrechen";
+"Unavailable" = "Nicht verfügbar";
+"Yes" = "Ja";
+"No" = "Nein";
+"Automatic" = "Automatisch";
+"None" = "Keiner";
+"Dots" = "Punkte";
+"Arrows" = "Pfeile";
+"Characters" = "Buchstaben";
+"Short" = "Kurz";
+"Long" = "Lange";
+"Statistics" = "Statistiken";
+
+// Alerts
+"New version available" = "Neue Version verfügbar";
+"Click to install the new version of Stats" = "Klicken Sie hier, um die neue Version von Stats zu installieren";
+"Successfully updated" = "Erfolgreich aktualisiert";
+"Stats was updated to v" = "Stats wurde auf v%0 aktualisiert";
+
+// Settings
+"Open Activity Monitor" = "Aktivitätsanzeige öffnen";
+"Report a bug" = "Einen Fehler melden";
+"Support the application" = "Unterstützen Sie die Anwendung";
+"Close application" = "Applikation schließen";
+"Open application settings" = "Einstellungen öffnen";
+"Open moduleName settings" = "%0 Einstellungen öffnen";
+
+// Application settings
+"Update application" = "Applikation aktualisieren";
+"Check for updates" = "Nach Updates suchen";
+"At start" = "Beim Start";
+"Once per day" = "Täglich";
+"Once per week" = "Wöchentlich";
+"Once per month" = "Monatlich";
+"Never" = "Nie";
+"Check for update" = "Nach Updates suchen";
+"Show icon in dock" = "Symbol im Dock anzeigen";
+"Start at login" = "Beim Login starten";
+
+// Dashboard
+"Serial number" = "Seriennummer";
+"Uptime" = "Betriebszeit";
+
+// Update
+"The latest version of Stats installed" = "Die neueste Version von Stats ist installiert";
+"Downloading..." = "Herunterladen...";
+"Current version: " = "Aktuelle Version: ";
+"Latest version: " = "Neueste Version: ";
+
+// Widgets
+"Color" = "Farbe";
+"Label" = "Beschriftung";
+"Box" = "Box";
+"Frame" = "Rahmen";
+"Value" = "Wert";
+"Colorize" = "Einfärben";
+"Colorize value" = "Einfärbe-Wert";
+"Additional information" = "Zusätzliche Informationen";
+"Reverse values order" = "Umgekehrte Reihenfolge der Werte";
+"Base" = "Basis";
+"Display mode" = "Anzeigemodus";
+"One row" = "Eine Reihe";
+"Two rows" = "Zwei Reihen";
+"Mini widget" = "Mini";
+"Line chart widget" = "Line chart";
+"Bar chart widget" = "Bar chart";
+"Pie chart widget" = "Pie chart";
+"Network chart widget" = "Network chart";
+"Speed widget" = "Speed";
+"Battery widget" = "Battery";
+"Text widget" = "Text";
+"Memory widget" = "Memory";
+
+// Module Kit
+"Open module settings" = "Modul-Einstellungen öffnen";
+"Select widget" = "%0 Widget auswählen";
+"Update interval" = "Update-Intervall";
+"Usage history" = "Verlauf";
+"Details" = "Details";
+"Top processes" = "Top-Prozesse";
+"Pictogram" = "Piktogramm";
+
+// Modules
+"Number of top processes" = "Anzahl der Prozesse";
+
+// CPU
+"CPU usage" = "CPU Verwendung";
+"CPU temperature" = "CPU Temperatur";
+"CPU frequency" = "CPU Frequenz";
+"System" = "System";
+"User" = "Nutzer";
+"Idle" = "Leerlauf";
+"Show usage per core" = "Nutzung pro Kern anzeigen";
+"Show hyper-threading cores" = "Hyper-Threading-Kerne anzeigen";
+
+// GPU
+"GPU to show" = "GPU auswählen";
+"Show GPU type" = "GPU Typ anzeigen";
+"GPU enabled" = "GPU enabled";
+"GPU disabled" = "GPU disabled";
+"GPU temperature" = "GPU Temperatur";
+"GPU utilization" = "GPU Nutzung";
+"Vendor" = "Vendor";
+"Model" = "Model";
+"Status" = "Status";
+"Active" = "Active";
+"Non active" = "Non active";
+"Fan speed" = "Fan speed";
+"Core clock" = "Core clock";
+"Memory clock" = "Memory clock";
+"Utilization" = "Utilization";
+
+// Memory
+"Memory usage" = "Speicherauslastung";
+"Memory pressure" = "Speicherdruck";
+"Total" = "Gesamt";
+"Used" = "Verwendet";
+"App" = "App";
+"Wired" = "Reserviert";
+"Compressed" = "Komprimiert";
+"Free" = "Frei";
+"Swap" = "Swap";
+
+// Disk
+"Show removable disks" = "Wechseldatenträger anzeigen";
+"Used disk memory" = "%0 von %1 verwendet";
+"Free disk memory" = "%0 von %1 frei";
+"Disk to show" = "Festplatte auswählen";
+"Open disk" = "Festplatte öffnen";
+"Switch view" = "Ansicht wechseln";
+
+// Sensors
+"Temperature unit" = "Temperatureinheit";
+"Celsius" = "Celsius";
+"Fahrenheit" = "Fahrenheit";
+
+// Network
+"Uploading" = "Upload";
+"Downloading" = "Download";
+"Public IP" = "Öffentliche IP";
+"Local IP" = "Lokale IP";
+"Interface" = "Schnittstelle";
+"Network" = "Netzwerk";
+"Physical address" = "Physische Adresse";
+"Click to copy public IP address" = "Klicken Sie zum Kopieren der öffentlichen IP-Adresse";
+"Click to copy local IP address" = "Klicken Sie zum Kopieren der lokalen IP-Adresse";
+"Click to copy wifi name" = "Klicken Sie zum Kopieren des WLAN-Namens";
+"Click to copy mac address" = "Klicken Sie zum Kopieren der MAC-Adresse";
+"No connection" = "Keine Verbindung";
+"Network interface" = "Netzwerkschnittstelle";
+"Total download" = "Empfangen";
+"Total upload" = "Gesendet";
+"Reader type" = "Lesertyp";
+"Interface based" = "Schnittstelle";
+"Processes based" = "Prozess";
+
+// Battery
+"Level" = "Ladezustand";
+"Source" = "Quelle";
+"AC Power" = "AC Power";
+"Battery Power" = "Battery Power";
+"Time" = "Zeit";
+"Health" = "Gesundheit";
+"Battery" = "Akku";
+"Amperage" = "Stromstärke";
+"Voltage" = "Spannung";
+"Cycles" = "Zyklusnummer";
+"Temperature" = "Temperatur";
+"Power adapter" = "Netzteil";
+"Power" = "Strom";
+"Is charging" = "wird aufgeladen";
+"Time to discharge" = "Entladedauer";
+"Time to charge" = "Ladedauer";
+"Calculating" = "Berechnen...";
+"Fully charged" = "vollständig aufgeladen";
+"Not connected" = "nicht angeschlossen";
+"Low level notification" = "Benachrichtigen bei";
+"Low battery" = "Akku schwach";
+"Battery remaining" = "%0% verbleiben";
+"Percentage" = "Prozentsatz";
+"Percentage and time" = "Prozentsatz und Zeit";
+"Time and percentage" = "Zeit und Prozentsatz";
+"Time format" = "Zeitformat";
+"Hide additional information when full" = "Zusätzliche Informationen bei vollständiger Ladung verbergen";
+
+// Fans
+"Fans" = "Fans";

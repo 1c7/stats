@@ -23,6 +23,14 @@
 "Unavailable" = "Недоступно";
 "Yes" = "Да";
 "No" = "Нет";
+"Automatic" = "Автоматический";
+"None" = "Никакой";
+"Dots" = "Точки";
+"Arrows" = "Стрелки";
+"Characters" = "Символы";
+"Short" = "Короткий";
+"Long" = "Длинный";
+"Statistics" = "Статистика";
 
 // Alerts
 "New version available" = "Доступна новая версия";
@@ -33,6 +41,7 @@
 // Settings
 "Open Activity Monitor" = "Открыть Мониторинг системы";
 "Report a bug" = "Сообщить об ошибке";
+"Support the application" = "Поддержите приложение";
 "Close application" = "Закрыть приложение";
 "Open application settings" = "Открыть настройки приложения";
 "Open moduleName settings" = "Откройте настройки %0";
@@ -40,8 +49,18 @@
 // Application settings
 "Update application" = "Обновить приложение";
 "Check for updates" = "Проверять обновления";
+"At start" = "При включении";
+"Once per day" = "Раз в день";
+"Once per week" = "Раз в неделю";
+"Once per month" = "Раз в месяц";
+"Never" = "Никогда";
+"Check for update" = "Проверить обновление";
 "Show icon in dock" = "Показать значок в dock";
 "Start at login" = "Запуск при логуванні";
+
+// Dashboard
+"Serial number" = "Серийный номер";
+"Uptime" = "Время работы";
 
 // Update
 "The latest version of Stats installed" = "Установлена последняя версия";
@@ -60,6 +79,18 @@
 "Additional information" = "Дополнительная информация";
 "Reverse values order" = "Изменить порядок сортировки";
 "Base" = "Основа";
+"Display mode" = "Режим отображения";
+"One row" = "Один ряд";
+"Two rows" = "Два ряда";
+"Mini widget" = "Mini";
+"Line chart widget" = "Line chart";
+"Bar chart widget" = "Bar chart";
+"Pie chart widget" = "Pie chart";
+"Network chart widget" = "Network chart";
+"Speed widget" = "Speed";
+"Battery widget" = "Battery";
+"Text widget" = "Text";
+"Memory widget" = "Memory";
 
 // Module Kit
 "Open module settings" = "Открыть настройки модуля";
@@ -70,9 +101,13 @@
 "Top processes" = "Топ процессы";
 "Pictogram" = "Пиктограмма";
 
+// Modules
+"Number of top processes" = "Количество процессов";
+
 // CPU
 "CPU usage" = "Использование процессора";
 "CPU temperature" = "Температура процессора";
+"CPU frequency" = "Частота процессора";
 "System" = "Система";
 "User" = "Пользователь";
 "Idle" = "Свободно";
@@ -81,8 +116,20 @@
 
 // GPU
 "GPU to show" = "Активный графический процессор";
+"Show GPU type" = "Отображать тип графического процессора";
+"GPU enabled" = "GPU enabled";
+"GPU disabled" = "GPU disabled";
 "GPU temperature" = "Температура графического процессора";
 "GPU utilization" = "Использование графического процессора";
+"Vendor" = "Vendor";
+"Model" = "Model";
+"Status" = "Status";
+"Active" = "Active";
+"Non active" = "Non active";
+"Fan speed" = "Fan speed";
+"Core clock" = "Core clock";
+"Memory clock" = "Memory clock";
+"Utilization" = "Utilization";
 
 // Memory
 "Memory usage" = "Нагрузка на память";
@@ -93,17 +140,23 @@
 "Wired" = "Зарезервированная";
 "Compressed" = "Сжатая";
 "Free" = "Свободная";
+"Swap" = "Swap";
 
 // Disk
 "Show removable disks" = "Показать съемные диски";
-"Used disk memory" = "Использовано %0 с %1";
+"Used disk memory" = "Использовано %0 из %1";
+"Free disk memory" = "Свободно %0 из %1";
 "Disk to show" = "Активный диск";
+"Open disk" = "Открытый диск";
+"Switch view" = "Переключить вид";
 
 // Sensors
 "Temperature unit" = "Единица измерения температуры";
+"Celsius" = "Цельсия";
+"Fahrenheit" = "Фаренгейта";
 
 // Network
-"Uploading" = "Висилання";
+"Uploading" = "Выгрузка";
 "Downloading" = "Загрузка";
 "Public IP" = "Публичный IP";
 "Local IP" = "Локальный IP";
@@ -116,18 +169,26 @@
 "Click to copy mac address" = "Нажмите, чтобы скопировать физический адрес";
 "No connection" = "Нет соединения";
 "Network interface" = "Сетевой интерфейс";
+"Total download" = "Всего скачано";
+"Total upload" = "Всего выгружено";
+"Reader type" = "Метод чтения";
+"Interface based" = "Интерфейс";
+"Processes based" = "Процессы";
 
 // Battery
 "Level" = "Уровень заряда";
 "Source" = "Источник";
+"AC Power" = "AC Power";
+"Battery Power" = "Battery Power";
 "Time" = "Время";
 "Health" = "Состояние аккумулятора";
 "Battery" = "Аккумулятор";
 "Amperage" = "Сила тока";
 "Voltage" = "Напряжение";
+"Cycles" = "Количество циклов";
 "Temperature" = "Температура";
 "Power adapter" = "Блок питания";
-"Power" = "Статус";
+"Power" = "Мощность";
 "Is charging" = "Заряжается";
 "Time to discharge" = "Время до разрядки";
 "Time to charge" = "Время до зарядки";
@@ -137,3 +198,11 @@
 "Low level notification" = "Сообщение о низком уровне заряда";
 "Low battery" = "Низкий заряд аккумулятора";
 "Battery remaining" = "%0% осталось";
+"Percentage" = "Проценты";
+"Percentage and time" = "Проценты и время";
+"Time and percentage" = "Время и Проценты";
+"Time format" = "Формат времени";
+"Hide additional information when full" = "Скрыть дополнительную информацию при полном заряде";
+
+// Fans
+"Fans" = "Fans";

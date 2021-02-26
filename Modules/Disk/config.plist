@@ -63,7 +63,7 @@
 			<key>Preview</key>
 			<dict>
 				<key>Value</key>
-				<string>51383185408,198466408448</string>
+				<string>47.85 GB, 184.84 GB</string>
 			</dict>
 			<key>Order</key>
 			<integer>2</integer>
@@ -75,7 +75,7 @@
 			<key>Order</key>
 			<integer>3</integer>
 			<key>Icon</key>
-			<string>Character</string>
+			<string>characters</string>
 			<key>Symbols</key>
 			<array>
 				<string>W</string>

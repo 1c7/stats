@@ -102,6 +102,10 @@ public extension Int {
             return NSColor.controlAccentColor
         }
     }
+    
+    init(fromFPE2 bytes: (UInt8, UInt8)) {
+        self = (Int(bytes.0) << 6) + (Int(bytes.1) >> 2)
+    }
 }
 
 extension Float {
@@ -122,25 +126,25 @@ public extension Double {
         return (self * divisor).rounded() / divisor
     }
     
-    func usageColor(reversed: Bool = false) -> NSColor {
+    func usageColor(zones: colorZones = (0.6, 0.8), reversed: Bool = false) -> NSColor {
         let firstColor: NSColor = NSColor.systemBlue
         let secondColor: NSColor = NSColor.orange
         let thirdColor: NSColor = NSColor.red
         
         if reversed {
             switch self {
-            case 0.6...0.8:
+            case zones.orange...zones.red:
                 return secondColor
-            case 0.8...1:
+            case zones.red...1:
                 return firstColor
             default:
                 return thirdColor
             }
         } else {
             switch self {
-            case 0.6...0.8:
+            case zones.orange...zones.red:
                 return secondColor
-            case 0.8...1:
+            case zones.red...1:
                 return thirdColor
             default:
                 return firstColor
@@ -183,34 +187,31 @@ public extension Double {
         }
     }
     
-    func secondsToHoursMinutesSeconds() -> (Int?, Int?, Int?) {
-        let hrs = self / 3600
+    func secondsToHoursMinutesSeconds() -> (Int, Int) {
         let mins = (self.truncatingRemainder(dividingBy: 3600)) / 60
-        let seconds = (self.truncatingRemainder(dividingBy:3600)).truncatingRemainder(dividingBy:60)
-        return (Int(hrs) > 0 ? Int(hrs) : nil , Int(mins) > 0 ? Int(mins) : nil, Int(seconds) > 0 ? Int(seconds) : nil)
+        return (Int(self / 3600) , Int(mins))
     }
     
-    func printSecondsToHoursMinutesSeconds() -> String {
-        let time = self.secondsToHoursMinutesSeconds()
+    func printSecondsToHoursMinutesSeconds(short: Bool = false) -> String {
+        let (h, m) = self.secondsToHoursMinutesSeconds()
         
-        switch time {
-        case (nil, let x? , let y?):
-            return "\(x)min \(y)sec"
-        case (nil, let x?, nil):
-            return "\(x)min"
-        case (let x?, nil, nil):
-            return "\(x)h"
-        case (nil, nil, let x?):
-            return "\(x)sec"
-        case (let x?, nil, let z?):
-            return "\(x)h \(z)sec"
-        case (let x?, let y?, nil):
-            return "\(x)h \(y)min"
-        case (let x?, let y?, let z?):
-            return "\(x)h \(y)min \(z)sec"
-        default:
+        if self == 0 || h < 0 || m < 0 {
             return "n/a"
         }
+        
+        let minutes = m > 9 ? "\(m)" : "0\(m)"
+        
+        if short {
+            return "\(h):\(minutes)"
+        }
+        
+        if h == 0 {
+            return "\(minutes)min"
+        } else if m == 0 {
+            return "\(h)h"
+        }
+        
+        return "\(h)h \(minutes)min"
     }
 }
 
@@ -347,25 +348,7 @@ public extension NSView {
         rowTitle.font = NSFont.systemFont(ofSize: 13, weight: .light)
         rowTitle.textColor = .textColor
         
-        let select: NSPopUpButton = NSPopUpButton(frame: NSRect(x: row.frame.width - 50, y: (row.frame.height-26)/2, width: 50, height: 26))
-        select.target = self
-        select.action = action
-        
-        let menu = NSMenu()
-        items.forEach { (item) in
-            if item.key.contains("separator") {
-                menu.addItem(NSMenuItem.separator())
-            } else {
-                let interfaceMenu = NSMenuItem(title: item.value, action: nil, keyEquivalent: "")
-                interfaceMenu.representedObject = item.key
-                menu.addItem(interfaceMenu)
-                if selected == item.key {
-                    interfaceMenu.state = .on
-                }
-            }
-        }
-        
-        select.menu = menu
+        let select: NSPopUpButton = SelectView(action: action, items: items, selected: selected)
         select.sizeToFit()
         
         rowTitle.setFrameSize(NSSize(width: row.frame.width - select.frame.width, height: rowTitle.frame.height))
@@ -376,28 +359,53 @@ public extension NSView {
         
         return row
     }
+    
+    func SelectView(action: Selector, items: [KeyValue_t], selected: String) -> NSPopUpButton {
+        let select: NSPopUpButton = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 50, height: 26))
+        select.target = self
+        select.action = action
+        
+        let menu = NSMenu()
+        items.forEach { (item) in
+            if item.key.contains("separator") {
+                menu.addItem(NSMenuItem.separator())
+            } else {
+                let interfaceMenu = NSMenuItem(title: LocalizedString(item.value), action: nil, keyEquivalent: "")
+                interfaceMenu.representedObject = item.key
+                menu.addItem(interfaceMenu)
+                if selected == item.key {
+                    interfaceMenu.state = .on
+                }
+            }
+        }
+        select.menu = menu
+        
+        return select
+    }
 }
 
 public extension Notification.Name {
     static let toggleSettings = Notification.Name("toggleSettings")
     static let toggleModule = Notification.Name("toggleModule")
-    static let openSettingsView = Notification.Name("openSettingsView")
+    static let togglePopup = Notification.Name("togglePopup")
+    static let toggleWidget = Notification.Name("toggleWidget")
+    static let openModuleSettings = Notification.Name("openModuleSettings")
+    static let settingsAppear = Notification.Name("settingsAppear")
     static let switchWidget = Notification.Name("switchWidget")
     static let checkForUpdates = Notification.Name("checkForUpdates")
     static let changeCronInterval = Notification.Name("changeCronInterval")
     static let clickInSettings = Notification.Name("clickInSettings")
-    static let updatePopupSize = Notification.Name("updatePopupSize")
 }
 
 public class NSButtonWithPadding: NSButton {
     public var horizontalPadding: CGFloat = 0
     public var verticalPadding: CGFloat = 0
-
+    
     public override var intrinsicContentSize: NSSize {
         var size = super.intrinsicContentSize
         size.width += self.horizontalPadding
         size.height += self.verticalPadding
-        return size;
+        return size
     }
 }
 
@@ -447,7 +455,7 @@ extension UInt16 {
 extension FourCharCode {
     init(fromString str: String) {
         precondition(str.count == 4)
-
+        
         self = str.utf8.reduce(0) { sum, character in
             return sum << 8 | UInt32(character)
         }
@@ -488,5 +496,65 @@ public extension NSColor {
         getRed(&r, green: &g, blue: &b, alpha: &a)
         let rgb:Int = (Int)(r*255)<<16 | (Int)(g*255)<<8 | (Int)(b*255)<<0
         return String(format:"#%06x", rgb)
+    }
+}
+
+public extension CATransaction {
+    static func disableAnimations(_ closure: () -> Void) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
+        CATransaction.setAnimationDuration(0)
+        closure()
+        CATransaction.commit()
+    }
+}
+
+public final class FlippedClipView: NSClipView {
+    public override var isFlipped: Bool {
+        return true
+    }
+}
+
+public final class ScrollableStackView: NSView {
+    public let stackView: NSStackView = NSStackView()
+    public let clipView: FlippedClipView = FlippedClipView()
+    private let scrollView: NSScrollView = NSScrollView()
+    
+    public override init(frame: NSRect) {
+        super.init(frame: frame)
+        
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.borderType = .noBorder
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.horizontalScrollElasticity = .none
+        scrollView.drawsBackground = false
+        self.addSubview(self.scrollView)
+        
+        NSLayoutConstraint.activate([
+            scrollView.leftAnchor.constraint(equalTo: self.leftAnchor),
+            scrollView.rightAnchor.constraint(equalTo: self.rightAnchor),
+            scrollView.topAnchor.constraint(equalTo: self.topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+        ])
+        
+        clipView.drawsBackground = false
+        scrollView.contentView = clipView
+        
+        stackView.orientation = .vertical
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.documentView = stackView
+        
+        NSLayoutConstraint.activate([
+            stackView.leftAnchor.constraint(equalTo: clipView.leftAnchor),
+            stackView.rightAnchor.constraint(equalTo: clipView.rightAnchor),
+            stackView.topAnchor.constraint(equalTo: clipView.topAnchor),
+        ])
+    }
+    
+    required public init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }

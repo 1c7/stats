@@ -12,13 +12,13 @@
 import Cocoa
 import StatsKit
 
-public class MemoryWidget: Widget {
+public class MemoryWidget: WidgetWrapper {
     private var orderReversedState: Bool = false
-    private var value: (Int64, Int64) = (0, 0)
+    private var value: (String, String) = ("0", "0")
     
     private let store: UnsafePointer<Store>?
     
-    public init(preview: Bool, title: String, config: NSDictionary?, store: UnsafePointer<Store>?) {
+    public init(title: String, config: NSDictionary?, store: UnsafePointer<Store>?, preview: Bool = false) {
         self.store = store
         if config != nil {
             var configuration = config!
@@ -27,26 +27,30 @@ public class MemoryWidget: Widget {
                 if let previewConfig = config!["Preview"] as? NSDictionary {
                     configuration = previewConfig
                     if let value = configuration["Value"] as? String {
-                        let values = value.split(separator: ",").map{ (Int64($0) ) }
+                        let values = value.split(separator: ",").map{ (String($0) ) }
                         if values.count == 2 {
-                            self.value.0 = values[0]!
-                            self.value.1 = values[1]!
+                            self.value.0 = values[0]
+                            self.value.1 = values[1]
                         }
                     }
                 }
             }
         }
-        super.init(frame: CGRect(x: 0, y: Constants.Widget.margin, width: 62, height: Constants.Widget.height - (2*Constants.Widget.margin)))
-        self.title = title
-        self.type = .memory
-        self.preview = preview
+        
+        super.init(.memory, title: title, frame: CGRect(
+            x: 0,
+            y: Constants.Widget.margin.y,
+            width: 62,
+            height: Constants.Widget.height - (2*Constants.Widget.margin.y)
+        ))
+        
         self.canDrawConcurrently = true
         
-        if self.store != nil {
+        if self.store != nil && !preview {
             self.orderReversedState = store!.pointee.bool(key: "\(self.title)_\(self.type.rawValue)_orderReversed", defaultValue: self.orderReversedState)
         }
         
-        if self.preview {
+        if preview {
             self.orderReversedState = false
         }
     }
@@ -59,7 +63,7 @@ public class MemoryWidget: Widget {
         super.draw(dirtyRect)
         
         let letterWidth: CGFloat = 8
-        let rowWidth: CGFloat = self.frame.width - Constants.Widget.margin - letterWidth
+        let rowWidth: CGFloat = self.frame.width - Constants.Widget.margin.x - letterWidth
         let rowHeight: CGFloat = self.frame.height / 2
         
         let style = NSMutableParagraphStyle()
@@ -73,24 +77,24 @@ public class MemoryWidget: Widget {
         let freeY: CGFloat = !self.orderReversedState ? rowHeight+1 : 1
         let usedY: CGFloat = !self.orderReversedState ? 1 : rowHeight+1
         
-        var rect = CGRect(x: Constants.Widget.margin, y: freeY, width: letterWidth, height: rowHeight)
+        var rect = CGRect(x: Constants.Widget.margin.x, y: freeY, width: letterWidth, height: rowHeight)
         var str = NSAttributedString.init(string: "F:", attributes: attributes)
         str.draw(with: rect)
         
         rect = CGRect(x: letterWidth, y: freeY, width: rowWidth, height: rowHeight)
-        str = NSAttributedString.init(string: Units(bytes: self.value.0).getReadableMemory(), attributes: attributes)
+        str = NSAttributedString.init(string: self.value.0, attributes: attributes)
         str.draw(with: rect)
         
-        rect = CGRect(x: Constants.Widget.margin, y: usedY, width: letterWidth, height: rowHeight)
+        rect = CGRect(x: Constants.Widget.margin.x, y: usedY, width: letterWidth, height: rowHeight)
         str = NSAttributedString.init(string: "U:", attributes: attributes)
         str.draw(with: rect)
         
         rect = CGRect(x: letterWidth, y: usedY, width: rowWidth, height: rowHeight)
-        str = NSAttributedString.init(string: Units(bytes: self.value.1).getReadableMemory(), attributes: attributes)
+        str = NSAttributedString.init(string: self.value.1, attributes: attributes)
         str.draw(with: rect)
     }
     
-    public func setValue(_ value: (Int64, Int64)) {
+    public func setValue(_ value: (String, String)) {
         self.value = value
         
         DispatchQueue.main.async(execute: {
@@ -98,12 +102,16 @@ public class MemoryWidget: Widget {
         })
     }
     
-    public override func settings(superview: NSView) {
+    public override func settings(width: CGFloat) -> NSView {
         let rowHeight: CGFloat = 30
         let height: CGFloat = ((rowHeight + Constants.Settings.margin) * 1) + Constants.Settings.margin
-        superview.setFrameSize(NSSize(width: superview.frame.width, height: height))
         
-        let view: NSView = NSView(frame: NSRect(x: Constants.Settings.margin, y: Constants.Settings.margin, width: superview.frame.width - (Constants.Settings.margin*2), height: superview.frame.height - (Constants.Settings.margin*2)))
+        let view: NSView = NSView(frame: NSRect(
+            x: Constants.Settings.margin,
+            y: Constants.Settings.margin,
+            width: width - (Constants.Settings.margin*2),
+            height: height
+        ))
         
         view.addSubview(ToggleTitleRow(
             frame: NSRect(x: 0, y: (rowHeight + Constants.Settings.margin) * 0, width: view.frame.width, height: rowHeight),
@@ -112,7 +120,7 @@ public class MemoryWidget: Widget {
             state: self.orderReversedState
         ))
         
-        superview.addSubview(view)
+        return view
     }
     
     @objc private func toggleOrder(_ sender: NSControl) {

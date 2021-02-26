@@ -23,6 +23,14 @@
 "Unavailable" = "Devre Dışı";
 "Yes" = "Evet";
 "No" = "Hayır";
+"Automatic" = "Otomatik";
+"None" = "Yok";
+"Dots" = "Noktalar";
+"Arrows" = "Oklar";
+"Characters" = "Mektuplar";
+"Short" = "Kısa";
+"Long" = "Uzun";
+"Statistics" = "İstatistik";
 
 // Alerts
 "New version available" = "Yeni versiyon indirilebilir";
@@ -33,6 +41,7 @@
 // Settings
 "Open Activity Monitor" = "Etkinlik Monitörünü aç";
 "Report a bug" = "Hata bildir";
+"Support the application" = "Uygulamayı destekleyin";
 "Close application" = "Uygulamayı kapat";
 "Open application settings" = "Uygulama ayarlarını aç";
 "Open moduleName settings" = "%0 ayarlarını aç";
@@ -40,19 +49,29 @@
 // Application settings
 "Update application" = "Uygulamayı güncelle";
 "Check for updates" = "Güncellemeleri denetle";
+"At start" = "At start";
+"Once per day" = "Once per day";
+"Once per week" = "Once per week";
+"Once per month" = "Once per month";
+"Never" = "Never";
+"Check for update" = "Güncellemeleri denetle";
 "Show icon in dock" = "Dock'ta göster";
 "Start at login" = "Başlangıçta çalıştır";
 
+// Dashboard
+"Serial number" = "Seri numarası";
+"Uptime" = "Uptime";
+
 // Update
 "The latest version of Stats installed" = "Stats'ın son sürümü yüklendi";
-"Downloading..." = "İndiriliyır...";
+"Downloading..." = "İndiriliyor...";
 "Current version: " = "Şu anki sürüm:  ";
 "Latest version: " = "Son sürüm:    ";
 
 // Widgets
 "Color" = "Renk";
-"Label" = "Etiker";
-"Box" = "Kutu";
+"Label" = "Etiket";
+"Box" = "Kutu Görünüm";
 "Frame" = "Çerçeve";
 "Value" = "Değer";
 "Colorize" = "Renklendir";
@@ -60,6 +79,18 @@
 "Additional information" = "Ek bilgi";
 "Reverse values order" = "Değerler sırasını tersine çevir";
 "Base" = "Temel";
+"Display mode" = "Ekran modu";
+"One row" = "Bir sıra";
+"Two rows" = "İki sıra";
+"Mini widget" = "Mini";
+"Line chart widget" = "Line chart";
+"Bar chart widget" = "Bar chart";
+"Pie chart widget" = "Pie chart";
+"Network chart widget" = "Network chart";
+"Speed widget" = "Speed";
+"Battery widget" = "Battery";
+"Text widget" = "Text";
+"Memory widget" = "Memory";
 
 // Module Kit
 "Open module settings" = "Modül ayarlarını aç";
@@ -70,9 +101,13 @@
 "Top processes" = "İşlemler";
 "Pictogram" = "Piktogram";
 
+// Modules
+"Number of top processes" = "İşlem sayısı";
+
 // CPU
 "CPU usage" = "CPU kullanımı";
 "CPU temperature" = "CPU sıcaklığı";
+"CPU frequency" = "CPU frekansı";
 "System" = "Sistem";
 "User" = "Kullanıcı";
 "Idle" = "Boşta";
@@ -81,8 +116,20 @@
 
 // GPU
 "GPU to show" = "Gösterilecek GPU";
+"Show GPU type" = "GPU türünü göster";
+"GPU enabled" = "GPU enabled";
+"GPU disabled" = "GPU disabled";
 "GPU temperature" = "GPU sıcaklığı";
 "GPU utilization" = "GPU kullanımı";
+"Vendor" = "Vendor";
+"Model" = "Model";
+"Status" = "Status";
+"Active" = "Active";
+"Non active" = "Non active";
+"Fan speed" = "Fan speed";
+"Core clock" = "Core clock";
+"Memory clock" = "Memory clock";
+"Utilization" = "Utilization";
 
 // Memory
 "Memory usage" = "Ram kullanımı";
@@ -93,14 +140,20 @@
 "Wired" = "Bağlı";
 "Compressed" = "Sıkıştırılmış";
 "Free" = "Boş";
+"Swap" = "Swap";
 
 // Disk
 "Show removable disks" = "Çıkarılabilir diskleri göster";
-"Used disk memory" = "kullanılan %0 , toplam %1";
+"Used disk memory" = "Kullanılan %0, toplam %1";
+"Free disk memory" = "Ücretsiz %0, toplam %1";
 "Disk to show" = "Gösterilecek disk";
+"Open disk" = "Açık disk";
+"Switch view" = "Görünümü değiştir";
 
 // Sensors
 "Temperature unit" = "Sıcaklık birimi";
+"Celsius" = "Santigrat";
+"Fahrenheit" = "Fahrenheit";
 
 // Network
 "Uploading" = "Yükleme";
@@ -116,15 +169,23 @@
 "Click to copy mac address" = "Mac adresini kopyalamak için tıklayın";
 "No connection" = "Bağlantı yok";
 "Network interface" = "Ağ arayüzü";
+"Total download" = "Toplam indirme";
+"Total upload" = "Toplam yükleme";
+"Reader type" = "Okuma yöntemi";
+"Interface based" = "Arayüz";
+"Processes based" = "Süreçler";
 
 // Battery
 "Level" = "Doluluk";
 "Source" = "Kaynak";
+"AC Power" = "AC Power";
+"Battery Power" = "Battery Power";
 "Time" = "Süre";
 "Health" = "Sağlık";
 "Battery" = "Batarya";
 "Amperage" = "Amper";
 "Voltage" = "Voltaj";
+"Cycles" = "Döngü sayısı";
 "Temperature" = "Sıcaklık";
 "Power adapter" = "Güç adaptörü";
 "Power" = "Güç";
@@ -137,3 +198,11 @@
 "Low level notification" = "Düşük güç bildirimi";
 "Low battery" = "Düşük batarya";
 "Battery remaining" = "%0% kaldı";
+"Percentage" = "Yüzde";
+"Percentage and time" = "Yüzde ve zaman";
+"Time and percentage" = "Zaman ve yüzde";
+"Time format" = "Zaman formatı";
+"Hide additional information when full" = "Pil dolduğunda ek bilgileri gizle";
+
+// Fans
+"Fans" = "Fanlar";
